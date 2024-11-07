@@ -67,7 +67,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends\
     ros-$ROS_DISTRO-rqt-tf-tree \
     ros-$ROS_DISTRO-image-transport-plugins \
     ros-$ROS_DISTRO-compressed-image-transport \
-    ros-$ROS_DISTRO-clearpath-desktop \
+    # ros-$ROS_DISTRO-clearpath-desktop \
     ros-$ROS_DISTRO-cv-bridge \
     ros-$ROS_DISTRO-rosbag2-py \
     ros-$ROS_DISTRO-usb-cam \
@@ -90,8 +90,8 @@ RUN mkdir -p /dev_ws/src
 
 WORKDIR /dev_ws
 
-RUN wget https://raw.githubusercontent.com/clearpathrobotics/clearpath_simulator/main/dependencies.repos \
-    && vcs import src < dependencies.repos
+# RUN wget https://raw.githubusercontent.com/clearpathrobotics/clearpath_simulator/main/dependencies.repos \
+#     && vcs import src < dependencies.repos
 
 
 COPY . /dev_ws/src
