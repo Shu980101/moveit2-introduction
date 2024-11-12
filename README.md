@@ -33,3 +33,13 @@ Start a terminal
 ```
 terminator
 ```
+## Launch moveit interface 
+To practice the motion planning in simulation
+```
+ros2 launch ur_commander iaac_ur10e.launch.py sim:=true
+```
+To connect to the real robot at IAAC
+```
+ros2 launch ur_commander iaac_ur10e.launch.py sim:=false
+```
+
