@@ -2,7 +2,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, GroupAction
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch_ros.substitutions import FindPackageShare
 import os
 
@@ -24,15 +24,30 @@ def generate_launch_description():
                 "forward_position_controller",
             ],
         ),
+        DeclareLaunchArgument(
+            "pipeline",
+            default_value="ompl",
+            description="Specify the planning pipeline to use",
+            choices=["ompl", "pilz"],
+        ),
     ]
 
     # Define launch configurations for use in the IncludeLaunchDescription
     sim = LaunchConfiguration("sim")
     initial_joint_controller = LaunchConfiguration("initial_joint_controller")
+    pipeline = LaunchConfiguration("pipeline")
 
     # Define the path to the UR launch file
     ur_bringup_launch_file = os.path.join(
         FindPackageShare("ur_robot_driver").find("ur_robot_driver"), "launch", "ur10e.launch.py"
+    )
+
+    moveit_ompl_launch_file = os.path.join(
+        FindPackageShare("ur_moveit_config").find("ur_moveit_config"), "launch", "ur_moveit.launch.py"
+    )
+
+    moveit_pilz_launch_file = os.path.join(
+        FindPackageShare("ur_moveit_config").find("ur_moveit_config"), "launch", "ur_moveit_pilz.launch.py"
     )
 
     # Define the arguments for both simulation and real robot modes
@@ -42,6 +57,7 @@ def generate_launch_description():
         "use_fake_hardware": "true",
         "fake_sensor_commands": "true",
         "activate_joint_controller": "true",
+        "launch_rviz": "false",
     }
 
     real_robot_arguments = {
@@ -50,6 +66,11 @@ def generate_launch_description():
         "use_fake_hardware": "false",
         "fake_sensor_commands": "false",
         "activate_joint_controller": "true",
+        "launch_rviz": "false",
+    }
+
+    moveit_arguments = {
+        "ur_type": "ur10e",
     }
 
     # Define the IncludeLaunchDescription with conditional arguments
@@ -68,5 +89,15 @@ def generate_launch_description():
         ]
     )
 
+    # Conditionally include the appropriate MoveIt launch file based on pipeline choice
+    moveit_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PythonExpression(
+                ["'", moveit_ompl_launch_file, "' if '", pipeline, "' == 'ompl' else '", moveit_pilz_launch_file, "'"]
+            )
+        ),
+        launch_arguments=moveit_arguments.items(),
+    )
+
     # Return the full launch description
-    return LaunchDescription(declared_arguments + [ur_bringup_launch])
+    return LaunchDescription(declared_arguments + [ur_bringup_launch, moveit_launch])
