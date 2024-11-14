@@ -44,5 +44,5 @@ ros2 launch ur_commander iaac_ur10e.launch.py sim:=false
 ```
 Apprarently the package support ompl and pilz planning pipeline only, you can use the argument to switch different algorithm.
 ```
-ros2 launch ur_commander iaac_ur10e.launch.py sim:true pipeline:pilz
+ros2 launch ur_commander iaac_ur10e.launch.py sim:=true pipeline:=pilz
 ```
