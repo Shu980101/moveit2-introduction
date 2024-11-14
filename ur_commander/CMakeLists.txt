@@ -8,13 +8,19 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+find_package(builtin_interfaces REQUIRED)
+find_package(geometry_msgs REQUIRED)
 
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+
+# Service files
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "srv/VisualizePoses.srv"
+  DEPENDENCIES builtin_interfaces geometry_msgs
+)
 
 # Install Python package
-ament_python_install_package(${PROJECT_NAME})
+# ament_python_install_package(${PROJECT_NAME} PACKAGE_DIR src/ur_commander)
 
 install(DIRECTORY src/ur_commander
   DESTINATION lib/${PROJECT_NAME}
