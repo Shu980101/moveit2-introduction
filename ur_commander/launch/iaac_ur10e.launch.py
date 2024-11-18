@@ -4,6 +4,7 @@ from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch_ros.substitutions import FindPackageShare
+from launch_ros.actions import Node
 import os
 
 
@@ -99,5 +100,12 @@ def generate_launch_description():
         launch_arguments=moveit_arguments.items(),
     )
 
+    # Launch the pose visualization node
+    visualize_pose_srv_node = Node(
+        package="ur_commander",
+        executable="visualize_pose_srv.py",
+        name="visualize_pose_srv_node",
+        output="screen",
+    )
     # Return the full launch description
-    return LaunchDescription(declared_arguments + [ur_bringup_launch, moveit_launch])
+    return LaunchDescription(declared_arguments + [ur_bringup_launch, moveit_launch, visualize_pose_srv_node])

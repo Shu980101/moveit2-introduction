@@ -22,15 +22,20 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 # Install Python package
 # ament_python_install_package(${PROJECT_NAME} PACKAGE_DIR src/ur_commander)
 
-install(DIRECTORY src/ur_commander
-  DESTINATION lib/${PROJECT_NAME}
-  FILES_MATCHING PATTERN "*.py"
-)
+# install(DIRECTORY src/ur_commander
+#   DESTINATION lib/${PROJECT_NAME}
+#   FILES_MATCHING PATTERN "*.py"
+# )
 
 # Install launch files.
 install(DIRECTORY
   launch config 
   DESTINATION share/${PROJECT_NAME}/
+)
+
+install(PROGRAMS
+  src/ur_commander/visualize_pose_srv.py
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)
