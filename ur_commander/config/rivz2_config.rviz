@@ -5,7 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /MotionPlanning1/Planning Request1
+        - /MotionPlanning1
         - /PoseArray1/Topic1
       Splitter Ratio: 0.4957627058029175
     Tree Height: 742
@@ -66,7 +66,7 @@ Visualization Manager:
           Z: 2
       Name: MotionPlanning
       Planned Path:
-        Color Enabled: true
+        Color Enabled: false
         Interrupt Display: true
         Links:
           All Links Enabled: true
@@ -135,12 +135,12 @@ Visualization Manager:
             Value: true
         Loop Animation: false
         Robot Alpha: 0.5
-        Robot Color: 150; 50; 150
+        Robot Color: 255; 0; 255
         Show Robot Collision: false
         Show Robot Visual: true
         Show Trail: false
         State Display Time: 0.05 s
-        Trail Step Size: 1
+        Trail Step Size: 5
         Trajectory Topic: /display_planned_path
         Use Sim Time: false
       Planning Metrics:
@@ -365,7 +365,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 4.625423908233643
+      Distance: 4.2524638175964355
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -380,10 +380,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.3203982412815094
+      Pitch: 0.09039779752492905
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.6953902244567871
+      Yaw: 0.6203892827033997
     Saved: ~
 Window Geometry:
   Displays:
