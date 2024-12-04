@@ -86,6 +86,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends\
     ros-$ROS_DISTRO-ros-ign-gazebo \
     ros-$ROS_DISTRO-ament-clang-format \
     ros-$ROS_DISTRO-moveit-visual-tools \
+    libgflags-dev nlohmann-json3-dev  \
+    ros-$ROS_DISTRO-image-transport ros-$ROS_DISTRO-image-publisher ros-$ROS_DISTRO-camera-info-manager \
+    ros-$ROS_DISTRO-diagnostic-updater ros-$ROS_DISTRO-diagnostic-msgs ros-$ROS_DISTRO-statistics-msgs \
+    ros-$ROS_DISTRO-backward-ros libdw-dev\
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 
@@ -95,7 +99,6 @@ WORKDIR /dev_ws
 
 # RUN wget https://raw.githubusercontent.com/clearpathrobotics/clearpath_simulator/main/dependencies.repos \
 #     && vcs import src < dependencies.repos
-
 
 COPY . /dev_ws/src
 
@@ -111,18 +114,18 @@ RUN ["/bin/bash", "-c", "cp /dev_ws/src/.docker/entrypoint.bash / && chmod 777 /
 
 
 # Create a workspace and clone the Orbbec SDK ROS2 repository
-WORKDIR /ros2_ws/src
+WORKDIR /dev_ws/src
 RUN git clone https://github.com/orbbec/OrbbecSDK_ROS2.git
 
-# Install udev rules for Orbbec cameras
-WORKDIR /ros2_ws/src/OrbbecSDK_ROS2/orbbec_camera/scripts
-RUN bash install_udev_rules.sh && \
-    udevadm control --reload-rules && udevadm trigger
 
 # Build the ROS2 workspace
 WORKDIR /ros2_ws
-RUN . /opt/ros/$ROS_DISTRO/setup.sh && \
-    colcon build --event-handlers console_direct+ --cmake-args -DCMAKE_BUILD_TYPE=Release
+RUN colcon build --event-handlers console_direct+ --cmake-args -DCMAKE_BUILD_TYPE=Release
+
+# Clean up the workspace and rebuild
+RUN rm -rf build install log && \
+    colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
+
 
 
 ENTRYPOINT ["bash", "/entrypoint.bash"]
