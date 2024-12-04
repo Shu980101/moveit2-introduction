@@ -16,6 +16,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends\
     iputils-ping \
     openssh-server \
     iproute2 \
+    python3.10 \
+    python3.10-distutils \
+    python3.10-venv \
     python3-pip \
     nano \
     build-essential \
@@ -106,6 +109,24 @@ RUN ["/bin/bash", "-c", "source /opt/ros/$ROS_DISTRO/setup.bash && \
 RUN ["/bin/bash", "-c", "cp /dev_ws/src/.docker/setup.bash /dev_ws/setup.bash && chmod 777 /dev_ws/setup.bash"]
 RUN ["/bin/bash", "-c", "cp /dev_ws/src/.docker/entrypoint.bash / && chmod 777 /entrypoint.bash"]
 
+
+# Create a workspace and clone the Orbbec SDK ROS2 repository
+WORKDIR /ros2_ws/src
+RUN git clone https://github.com/orbbec/OrbbecSDK_ROS2.git
+
+# Install udev rules for Orbbec cameras
+WORKDIR /ros2_ws/src/OrbbecSDK_ROS2/orbbec_camera/scripts
+RUN bash install_udev_rules.sh && \
+    udevadm control --reload-rules && udevadm trigger
+
+# Build the ROS2 workspace
+WORKDIR /ros2_ws
+RUN . /opt/ros/$ROS_DISTRO/setup.sh && \
+    colcon build --event-handlers console_direct+ --cmake-args -DCMAKE_BUILD_TYPE=Release
+
+
 ENTRYPOINT ["bash", "/entrypoint.bash"]
 
 CMD ["bash"]
+
+
