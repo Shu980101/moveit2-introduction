@@ -120,7 +120,9 @@ RUN git clone https://github.com/orbbec/OrbbecSDK_ROS2.git
 
 # Build the ROS2 workspace
 WORKDIR /dev_ws
-RUN colcon build --event-handlers console_direct+ --cmake-args -DCMAKE_BUILD_TYPE=Release
+RUN rm -rf build install log && \
+    colcon build --merge-install --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
+
 
 # Clean up the workspace and rebuild
 RUN rm -rf build install log && \
