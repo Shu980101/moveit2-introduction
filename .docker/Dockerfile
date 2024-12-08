@@ -1,16 +1,16 @@
-# Specify the base image
 ARG ROS_DISTRO=humble
 FROM ros:${ROS_DISTRO}-ros-base AS base
 
-# Set environment variables
 ARG ROS_DISTRO
+
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TERM=xterm-256color
+ENV CMAKE_PREFIX_PATH=/opt/ros/$ROS_DISTRO:$CMAKE_PREFIX_PATH
 
-# Install basic utilities and dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
+
+RUN apt-get update && apt-get install -y --no-install-recommends\
     wget \
     curl \
     terminator \
@@ -31,14 +31,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-setuptools \
     python3-vcstool \
     freeglut3-dev \
-    lsb-release \
-    gnupg \
+    lsb-release gnupg \
     libglew-dev \
     libqt5opengl5-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install Python packages
-RUN pip3 install --no-cache-dir --upgrade pip \
+RUN pip3 install --no-cache-dir --upgrade pip\
     argcomplete \
     flake8-blind-except \
     flake8-builtins \
@@ -55,24 +53,25 @@ RUN pip3 install --no-cache-dir --upgrade pip \
     numpy \
     opencv-python \
     pydantic==1.10.14 \
-    pandas \
+    panda \
     matplotlib \
-    rosbags
+    rosbags     
 
-# Add the Gazebo package repository and install Ignition Fortress
+
 RUN sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list' \
     && wget http://packages.osrfoundation.org/gazebo.key -O - | apt-key add - \
     && apt-get update && apt-get install -y ignition-fortress
 
-# Install ROS 2 packages
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends\
     ros-$ROS_DISTRO-rqt \
     ros-$ROS_DISTRO-rqt-common-plugins \
     ros-$ROS_DISTRO-rqt-robot-dashboard \
     ros-$ROS_DISTRO-rqt-robot-steering \
     ros-$ROS_DISTRO-rqt-tf-tree \
+    ros-$ROS_DISTRO-rqt-tf-tree \
     ros-$ROS_DISTRO-image-transport-plugins \
     ros-$ROS_DISTRO-compressed-image-transport \
+    # ros-$ROS_DISTRO-clearpath-desktop \
     ros-$ROS_DISTRO-cv-bridge \
     ros-$ROS_DISTRO-rosbag2-py \
     ros-$ROS_DISTRO-usb-cam \
@@ -86,45 +85,51 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-$ROS_DISTRO-moveit-servo \
     ros-$ROS_DISTRO-ros-ign-bridge \
     ros-$ROS_DISTRO-ros-ign-gazebo \
-    ros-$ROS_DISTRO-ament-cmake \
+    ros-$ROS_DISTRO-ament-clang-format \
     ros-$ROS_DISTRO-moveit-visual-tools \
-    libgflags-dev \
-    nlohmann-json3-dev \
+    libgflags-dev nlohmann-json3-dev  \
+    ros-$ROS_DISTRO-image-transport ros-$ROS_DISTRO-image-publisher ros-$ROS_DISTRO-camera-info-manager \
+    ros-$ROS_DISTRO-diagnostic-updater ros-$ROS_DISTRO-diagnostic-msgs ros-$ROS_DISTRO-statistics-msgs \
+    ros-$ROS_DISTRO-backward-ros libdw-dev\
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Create a ROS 2 workspace and set the working directory
+
 RUN mkdir -p /dev_ws/src
-WORKDIR /dev_ws
 
-# Copy source files into the workspace
-COPY . /dev_ws/src
-
-# Install dependencies using rosdep
-RUN apt-get update && rosdep install --ignore-src --from-paths src -y \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Clone the Orbbec SDK ROS 2 repository
+# Clone the Orbbec SDK ROS2 repository into the workspace
 WORKDIR /dev_ws/src
 RUN git clone https://github.com/orbbec/OrbbecSDK_ROS2.git
 
-# Build the workspace with ROS 2
+# Go back to the workspace root
 WORKDIR /dev_ws
-RUN /bin/bash -c "source /opt/ros/$ROS_DISTRO/setup.bash && \
-    rm -rf build install log && \
-    colcon build --merge-install --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release"
+COPY . /dev_ws/src
 
-# Add setup and entrypoint scripts
-RUN /bin/bash -c "cp /dev_ws/src/.docker/setup.bash /dev_ws/setup.bash && chmod 777 /dev_ws/setup.bash"
-RUN /bin/bash -c "cp /dev_ws/src/.docker/entrypoint.bash / && chmod 777 /entrypoint.bash"
+# Update apt package lists before installing dependencies
+RUN apt-get update && apt-get install -y libgoogle-glog-dev
 
-# Rebuild the workspace to ensure clean setup
-RUN /bin/bash -c "source /opt/ros/$ROS_DISTRO/setup.bash && \
-    rm -rf build install log && \
-    colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release"
+# Install dependencies with rosdep
+RUN rosdep install --from-paths src --ignore-src -y
 
-# Set the entrypoint
+
+# Clean the workspace (if necessary) to avoid layout issues from previous builds
+RUN rm -rf install build log
+
+RUN apt-get update && apt-get install -y ros-$ROS_DISTRO-ament-cmake
+RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc
+
+
+# Build the workspace
+RUN bash -c "source /opt/ros/$ROS_DISTRO/setup.bash && colcon build --merge-install --event-handlers console_direct+ --cmake-args -DCMAKE_BUILD_TYPE=Release"
+
+# Ensure that .docker/setup.bash exists before attempting to copy it
+# If it's not available, you can create it or adjust the source path
+RUN ["/bin/bash", "-c", "cp /dev_ws/src/.docker/setup.bash /dev_ws/setup.bash && chmod 777 /dev_ws/setup.bash"]
+RUN ["/bin/bash", "-c", "cp /dev_ws/src/.docker/entrypoint.bash / && chmod 777 /entrypoint.bash"]
+
+
+
 ENTRYPOINT ["bash", "/entrypoint.bash"]
 
-# Default command
 CMD ["bash"]
+
 
